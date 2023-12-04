@@ -15,7 +15,9 @@ struct TCAAdvanceApp: App {
             AppView(store:
                     .init(
                         initialState: ProductList.State(),
-                        reducer: { ProductList()
+                        reducer: { 
+                            ProductList()
+                                ._printChanges()
                         }
                     )
             )

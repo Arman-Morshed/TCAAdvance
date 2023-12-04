@@ -19,7 +19,7 @@ extension ProductList {
         
         public var body: some SwiftUI.View {
             WithViewStore(self.store, observe: { $0 }) { viewStore in
-                VStack(alignment: .leading) {
+                VStack(alignment: .center) {
                     if !viewStore.showLoader {
                         List(viewStore.products, id: \.id) { product in
                             productItem(product)
@@ -28,12 +28,22 @@ extension ProductList {
                     } else {
                         ProgressView()
                     }
+                    
+                    Button {
+                        viewStore.send(.view(.addButtonTapped))
+                    } label: {
+                        Text("Add Product")
+                            .frame(width: 120, height: 88)
+                    }
+                    .disabled(viewStore.showLoader)
+                    
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
                 .onAppear {
                     viewStore.send(.view(.onAppear))
                 }
-                .ignoresSafeArea()
+                .destinations(store: store)
             }
         }
         
@@ -42,7 +52,7 @@ extension ProductList {
             VStack(alignment: .leading) {
                 Text("\(product.name)")
                     .font(.title)
-                   
+                
                 Text("\(product.category.title)")
                     .font(.body)
                 
@@ -53,3 +63,27 @@ extension ProductList {
     }
 }
 
+private extension StoreOf<ProductList> {
+    var destination: PresentationStoreOf<ProductList.Destination> {
+        scope(state: \.$destination, action: \.destination)
+    }
+}
+
+@MainActor
+private extension View {
+    func destinations(store: StoreOf<ProductList>) -> some View {
+        let destinationStore = store.destination
+        return addProductItem(with: destinationStore)
+    }
+    
+    @ViewBuilder
+    private func addProductItem(with destinationStore: PresentationStoreOf<ProductList.Destination>) -> some View {
+        sheet(store:
+                destinationStore.scope(
+                    state: \.addItemState,
+                    action: \.addItemAction)
+        ) { store in
+            AddProductItem.View(store: store)
+        }
+    }
+}
