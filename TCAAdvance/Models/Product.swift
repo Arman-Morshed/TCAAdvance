@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import IdentifiedCollections
 
-public enum ProductCategory: String {
+public enum ProductCategory: String, CaseIterable, Identifiable, Hashable {
     case IT
     case groceries
-    
+    public var id: ProductCategory { self }
     
     var title: String {
         switch self {
@@ -36,7 +37,7 @@ public struct Product: Identifiable, Equatable, Hashable {
 }
 
 extension Product {
-    static let products: [Product] = [
+    static let products: IdentifiedArrayOf<Product> = [
         .init(name: "Mac Mini", category: .IT, quantity: 4),
         .init(name: "Macbook Pro", category: .IT, quantity: 5),
         .init(name: "Rice", category: .groceries, quantity: 5),

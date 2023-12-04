@@ -74,11 +74,10 @@ extension Reducer where Self: FeatureReducer {
     
 }
 
-public typealias ViewStoreOf<Feature: FeatureReducer> = ViewStore<Feature.ViewState, Feature.ViewAction>
-
-public typealias StatckStoreOf<R: Reducer> = StackAction<R.State, R.Action>
+public typealias PresentationStoreOf<R: Reducer> = Store<PresentationState<R.State>, PresentationAction<R.Action>>
 
 // MARK: FeatureAction
+@CasePathable
 public enum FeatureAction<Feature: FeatureReducer>: Sendable, Equatable {
     case destination(PresentationAction<Feature.Destination.Action>)
     case view(Feature.ViewAction)
@@ -88,7 +87,7 @@ public enum FeatureAction<Feature: FeatureReducer>: Sendable, Equatable {
 }
 
 // MARK: DestinationReducer
-public protocol DestinationReducer: Reducer where State: Sendable & Hashable, Action: Sendable & Equatable { }
+public protocol DestinationReducer: Reducer where State: Sendable & Hashable, Action: Sendable & Equatable & CasePathable { }
 
 // MARK: EmptyDestination
 
