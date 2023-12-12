@@ -13,16 +13,14 @@ import Foundation
 
 public struct AddProductItem: FeatureReducer {
     
+    @ObservableState
     public struct State: Equatable, Hashable {
-//        @BindingState var name: String = ""
-//        @BindingState var quantity: Int = 0
-//        @BindingState var category: ProductCategory = .IT
-        
         var name: String = ""
         var quantity: Int = 0
         var category: ProductCategory = .IT
     }
     
+    @CasePathable
     public enum ViewAction: Equatable {
         //case binding(BindingAction<State>)
         case saveButtonTapped
