@@ -24,8 +24,6 @@ public protocol FeatureReducer: Reducer where State: Sendable & Hashable, Action
     
     associatedtype Destination: DestinationReducer = EmptyDestination
     associatedtype ViewState: Equatable = Never
-    associatedtype View: SwiftUI.View
-    
 }
 
 extension Reducer where Self: FeatureReducer {

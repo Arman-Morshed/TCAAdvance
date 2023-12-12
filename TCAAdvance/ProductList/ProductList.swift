@@ -11,11 +11,12 @@ import ComposableArchitecture
 public struct ProductList: Sendable, FeatureReducer {
     @Dependency(\.continuousClock) var continuousClock
     
+    @ObservableState
     public struct State: Equatable, Hashable {
         var showLoader = true
         var products: IdentifiedArrayOf<Product> = []
         
-        @PresentationState var destination: Destination.State?
+        @Presents var destination: Destination.State?
     }
     
     public enum ViewAction: Equatable {
@@ -74,6 +75,7 @@ public struct ProductList: Sendable, FeatureReducer {
     
     public struct Destination: DestinationReducer {
         
+        @dynamicMemberLookup
         @CasePathable
         public enum State: Hashable {
             case addItemState(AddProductItem.State)

@@ -12,7 +12,7 @@ struct AppView: View {
     let store: StoreOf<ProductList>
     
     var body: some View {
-        ProductList.View(store: store)
+        ProductListView(store: store)
     }
 }
 
