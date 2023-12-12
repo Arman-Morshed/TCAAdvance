@@ -11,40 +11,38 @@ import SwiftUI
 extension ProductList {
     @MainActor
     public struct View: SwiftUI.View {
-        let store: StoreOf<ProductList>
+        @Bindable var store: StoreOf<ProductList>
         
         public init(store: StoreOf<ProductList>) {
             self.store = store
         }
         
         public var body: some SwiftUI.View {
-            WithViewStore(self.store, observe: { $0 }) { viewStore in
-                VStack(alignment: .center) {
-                    if !viewStore.showLoader {
-                        List(viewStore.products, id: \.id) { product in
-                            productItem(product)
-                        }
-                        .padding()
-                    } else {
-                        ProgressView()
+            VStack(alignment: .center) {
+                if !store.showLoader {
+                    List(store.products, id: \.id) { product in
+                        productItem(product)
                     }
-                    
-                    Button {
-                        viewStore.send(.view(.addButtonTapped))
-                    } label: {
-                        Text("Add Product")
-                            .frame(width: 120, height: 88)
-                    }
-                    .disabled(viewStore.showLoader)
-                    
+                    .padding()
+                } else {
+                    ProgressView()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-                .onAppear {
-                    viewStore.send(.view(.onAppear))
+                
+                Button {
+                    store.send(.view(.addButtonTapped))
+                } label: {
+                    Text("Add Product")
+                        .frame(width: 120, height: 88)
                 }
-                .destinations(store: store)
+                .disabled(store.showLoader)
+                
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+            .onAppear {
+                store.send(.view(.onAppear))
+            }
+            .destinations(store: store)
         }
         
         @ViewBuilder
@@ -64,25 +62,26 @@ extension ProductList {
 }
 
 private extension StoreOf<ProductList> {
-    var destination: PresentationStoreOf<ProductList.Destination> {
-        scope(state: \.$destination, action: \.destination)
+    var bindableDestination: Bindable<StoreOf<ProductList>> {
+        return Bindable(self)
     }
 }
 
 @MainActor
 private extension View {
     func destinations(store: StoreOf<ProductList>) -> some View {
-        let destinationStore = store.destination
-        return addProductItem(with: destinationStore)
+        let bindableDestination = store.bindableDestination
+        return addProductItem(with: bindableDestination)
     }
     
     @ViewBuilder
-    private func addProductItem(with destinationStore: PresentationStoreOf<ProductList.Destination>) -> some View {
-        sheet(store:
-                destinationStore.scope(
-                    state: \.addItemState,
-                    action: \.addItemAction)
-        ) { store in
+    private func addProductItem(with destinationStore: Bindable<StoreOf<ProductList>>) -> some View {
+        
+        let destinationStore = destinationStore.scope(
+            state: \.destination?.addItemState,
+            action: \.destination.addItemAction)
+        
+        sheet(item: destinationStore) { store in
             AddProductItem.View(store: store)
         }
     }
