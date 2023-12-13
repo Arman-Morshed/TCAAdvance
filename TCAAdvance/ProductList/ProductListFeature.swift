@@ -32,13 +32,14 @@ public struct ProductListFeature: Sendable, FeatureReducer {
         case addProduct(Product)
     }
     
+    @CasePathable
     public enum ChildAction: Sendable, Equatable {
-        case product(ProductRowFeature.State.ID, ProductRowFeature.Action)
+        case product(IdentifiedActionOf<ProductRowFeature>)
     }
     
     public var body: some ReducerOf<Self> {
         Reduce(core)
-            .forEach(\.rows, action: /Action.child .. ChildAction.product) {
+            .forEach(\.rows, action: \.child.product) {
                 ProductRowFeature()
             }
             .ifLet(\.$destination, action: \.destination) {
@@ -85,7 +86,7 @@ public struct ProductListFeature: Sendable, FeatureReducer {
     
     public func reduce(into state: inout State, childAction: ChildAction) -> Effect<Action> {
         switch childAction {
-        case let .product(id, .delegate(delegateAction)):
+        case let .product(.element(id: id, action: .delegate(delegateAction))):
             guard let productRow = state.rows[id: id] else { return .none }
             let product = productRow.product
             switch delegateAction {

@@ -17,16 +17,9 @@ public struct ProductListView: View {
     
     public var body: some View {
         List {
-            ForEachStore(
-                store.scope(
-                    state: \.rows,
-                    action: { .child(.product($0, $1)) }
-                ),
-                content: {
-                    ProductRowView(store: $0)
-                }
-            )
-            
+            ForEach(store.scope(state: \.rows, action: \.child.product)) { store in
+              ProductRowView(store: store)
+            }
         }
         .navigationTitle("Products")
         .toolbar {
@@ -73,23 +66,12 @@ private extension StoreOf<ProductListFeature> {
     }
 }
 
-private extension StoreOf<ProductListFeature> {
-    var destination: PresentationStoreOf<ProductListFeature.Destination> {
-        func scopeState(state: State) -> PresentationState<ProductListFeature.Destination.State> {
-            state.$destination
-        }
-        return scope(state: scopeState, action: Action.destination)
-    }
-}
-
-
 @MainActor
 private extension View {
     func destinations(store: StoreOf<ProductListFeature>) -> some View {
-        let destination = store.destination
         let bindableDestination = store.bindableDestination
         return addProductItem(with: bindableDestination)
-            .productDetails(with: destination)
+            .productDetails(with: bindableDestination)
         
     }
     
@@ -105,13 +87,14 @@ private extension View {
         }
     }
     
-    private func productDetails(with destinationStore: PresentationStoreOf<ProductListFeature.Destination>) -> some View {
-        navigationDestination(
-            store: destinationStore,
-            state: /ProductListFeature.Destination.State.productDetails,
-            action: ProductListFeature.Destination.Action.productDetails,
-            destination: { ProductDetailsView(store: $0) }
-        )
+    private func productDetails(with destinationStore: Bindable<StoreOf<ProductListFeature>>) -> some View {
+        let destinationStore = destinationStore.scope(
+            state: \.destination?.productDetails,
+            action: \.destination.productDetails)
+        
+        return navigationDestination(item: destinationStore) { store in
+            ProductDetailsView(store: store)
+        }
     }
 }
 
