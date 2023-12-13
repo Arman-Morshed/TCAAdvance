@@ -8,18 +8,15 @@
 import Foundation
 import IdentifiedCollections
 
-public enum ProductCategory: String, CaseIterable, Identifiable, Hashable {
-    case IT
-    case groceries
+public enum ProductCategory: String, CaseIterable, Identifiable, Hashable, Equatable {
+    case mobile
+    case computer
+    case electronics
+    case accessories
     public var id: ProductCategory { self }
     
     var title: String {
-        switch self {
-        case .IT:
-            return "IT"
-        case .groceries:
-            return "Groceries"
-        }
+        self.rawValue.capitalized
     }
 }
 
@@ -38,9 +35,10 @@ public struct Product: Identifiable, Equatable, Hashable {
 
 extension Product {
     static let products: IdentifiedArrayOf<Product> = [
-        .init(name: "Mac Mini", category: .IT, quantity: 4),
-        .init(name: "Macbook Pro", category: .IT, quantity: 5),
-        .init(name: "Rice", category: .groceries, quantity: 5),
-        .init(name: "Oil", category: .groceries, quantity: 1)
+        .init(name: "Mac Mini", category: .computer, quantity: 4),
+        .init(name: "Macbook Pro", category: .computer, quantity: 5),
+        .init(name: "iPhone 15 Pro Max", category: .mobile, quantity: 5),
+        .init(name: "Sony Bravia 64", category: .electronics, quantity: 1),
+        .init(name: "Magic Mouse", category: .accessories, quantity: 1)
     ]
 }

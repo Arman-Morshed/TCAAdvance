@@ -12,15 +12,21 @@ import SwiftUI
 struct TCAAdvanceApp: App {
     var body: some Scene {
         WindowGroup {
-            AppView(store:
-                    .init(
-                        initialState: ProductList.State(),
-                        reducer: { 
-                            ProductList()
-                                ._printChanges()
-                        }
-                    )
-            )
+            NavigationStack {
+                AppView(store:
+                        .init(
+                            initialState: ProductListFeature.State(
+                                rows: .init(
+                                    uniqueElements: []
+                                )
+                            ),
+                            reducer: {
+                                ProductListFeature()
+                                    ._printChanges()
+                            }
+                        )
+                )
+            }
         }
     }
 }

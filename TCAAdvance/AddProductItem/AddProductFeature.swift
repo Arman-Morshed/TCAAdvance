@@ -11,13 +11,13 @@ import Foundation
 
 // MARK: New way of Binding(@BindingState, BindableAction) not working of composable architecture and can't figure it out why error happening `BindingState<*>' to expected argument type 'Binding<*>`. As new observation beta version will replace the way of binding so does not spend much time on that issue.
 
-public struct AddProductItem: FeatureReducer {
+public struct AddProductFeature: FeatureReducer {
     
     @ObservableState
     public struct State: Equatable, Hashable {
         var name: String = ""
         var quantity: Int = 0
-        var category: ProductCategory = .IT
+        var category: ProductCategory = .computer
     }
     
     @CasePathable

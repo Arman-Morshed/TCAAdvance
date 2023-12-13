@@ -1,5 +1,5 @@
 //
-//  AddProductItem+View.swift
+//  AddProductView.swift
 //  TCAAdvance
 //
 //  Created by Md. Arman Morshed on 2/12/23.
@@ -10,10 +10,10 @@ import Foundation
 import SwiftUI
 
 @MainActor
-public struct AddProductItemView: View {
-    @Bindable var store: StoreOf<AddProductItem>
+public struct AddProductView: View {
+    @Bindable var store: StoreOf<AddProductFeature>
     
-    public init(store: StoreOf<AddProductItem>) {
+    public init(store: StoreOf<AddProductFeature>) {
         self.store = store
     }
     

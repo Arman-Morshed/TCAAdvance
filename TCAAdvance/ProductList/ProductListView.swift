@@ -1,5 +1,5 @@
 //
-//  ProductList+View.swift
+//  ProductListView.swift
 //  TCAAdvance
 //
 //  Created by Md. Arman Morshed on 1/12/23.
@@ -8,79 +8,99 @@
 import ComposableArchitecture
 import SwiftUI
 
-@MainActor
 public struct ProductListView: View {
-    @Bindable var store: StoreOf<ProductList>
+    @Bindable var store: StoreOf<ProductListFeature>
     
-    public init(store: StoreOf<ProductList>) {
+    public init(store: StoreOf<ProductListFeature>) {
         self.store = store
     }
     
     public var body: some View {
-        VStack(alignment: .center) {
-            if !store.showLoader {
-                List(store.products, id: \.id) { product in
-                    productItem(product)
-                }
-                .padding()
-            } else {
-                ProgressView()
+        List {
+            ForEach(store.scope(state: \.rows, action: \.child.product)) { store in
+              ProductRowView(store: store)
             }
-            
+        }
+        .navigationTitle("Products")
+        .toolbar {
             Button {
                 store.send(.view(.addButtonTapped))
             } label: {
-                Text("Add Product")
-                    .frame(width: 120, height: 88)
+                Image(systemName: "plus")
             }
-            .disabled(store.showLoader)
-            
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
+        .overlay {
+            if store.showLoader {
+                ProgressView()
+            }
+        }
+        .destinations(store: store)
         .onAppear {
             store.send(.view(.onAppear))
         }
-        .destinations(store: store)
     }
     
     @ViewBuilder
     func productItem(_ product: Product) -> some SwiftUI.View {
-        VStack(alignment: .leading) {
+        NavigationLink {
+            VStack(alignment: .leading) {
+                Text("\(product.name)")
+                    .font(.title)
+                
+                Text("\(product.category.title)")
+                    .font(.body)
+                
+                Text("\(product.quantity)")
+                    .font(.title2)
+            }
+        } label: {
             Text("\(product.name)")
-                .font(.title)
-            
-            Text("\(product.category.title)")
-                .font(.body)
-            
-            Text("\(product.quantity)")
-                .font(.title2)
         }
+        
     }
 }
 
-private extension StoreOf<ProductList> {
-    var bindableDestination: Bindable<StoreOf<ProductList>> {
+private extension StoreOf<ProductListFeature> {
+    var bindableDestination: Bindable<StoreOf<ProductListFeature>> {
         return Bindable(self)
     }
 }
 
 @MainActor
 private extension View {
-    func destinations(store: StoreOf<ProductList>) -> some View {
+    func destinations(store: StoreOf<ProductListFeature>) -> some View {
         let bindableDestination = store.bindableDestination
         return addProductItem(with: bindableDestination)
+            .productDetails(with: bindableDestination)
+        
     }
     
     @ViewBuilder
-    private func addProductItem(with destinationStore: Bindable<StoreOf<ProductList>>) -> some View {
+    private func addProductItem(with destinationStore: Bindable<StoreOf<ProductListFeature>>) -> some View {
         
         let destinationStore = destinationStore.scope(
             state: \.destination?.addItemState,
             action: \.destination.addItemAction)
         
         sheet(item: destinationStore) { store in
-            AddProductItemView(store: store)
+            AddProductView(store: store)
+        }
+    }
+    
+    private func productDetails(with destinationStore: Bindable<StoreOf<ProductListFeature>>) -> some View {
+        let destinationStore = destinationStore.scope(
+            state: \.destination?.productDetails,
+            action: \.destination.productDetails)
+        
+        return navigationDestination(item: destinationStore) { store in
+            ProductDetailsView(store: store)
         }
     }
 }
+
+//#Preview {
+//    ProductListView(
+//        store: .init(initialState: ProductListFeature.State(),
+//                     reducer: ProductListFeature.init)
+//    )
+//}

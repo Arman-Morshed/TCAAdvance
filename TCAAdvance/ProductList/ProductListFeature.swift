@@ -8,15 +8,18 @@
 import Foundation
 import ComposableArchitecture
 
-public struct ProductList: Sendable, FeatureReducer {
+public struct ProductListFeature: Sendable, FeatureReducer {
     @Dependency(\.continuousClock) var continuousClock
     
     @ObservableState
     public struct State: Equatable, Hashable {
         var showLoader = true
-        var products: IdentifiedArrayOf<Product> = []
-        
+        public var rows: IdentifiedArrayOf<ProductRowFeature.State> = []
         @Presents var destination: Destination.State?
+        
+        init(rows: IdentifiedArrayOf<ProductRowFeature.State>) {
+            self.rows = rows
+        }
     }
     
     public enum ViewAction: Equatable {
@@ -29,8 +32,16 @@ public struct ProductList: Sendable, FeatureReducer {
         case addProduct(Product)
     }
     
+    @CasePathable
+    public enum ChildAction: Sendable, Equatable {
+        case product(IdentifiedActionOf<ProductRowFeature>)
+    }
+    
     public var body: some ReducerOf<Self> {
         Reduce(core)
+            .forEach(\.rows, action: \.child.product) {
+                ProductRowFeature()
+            }
             .ifLet(\.$destination, action: \.destination) {
                 Destination()
             }
@@ -64,11 +75,27 @@ public struct ProductList: Sendable, FeatureReducer {
         switch internalAction {
         case .fetchProduct:
             state.showLoader = false
-            state.products = Product.products
+            state.rows = .init(uniqueElements: Product.products.map { ProductRowFeature.State(product: $0) })
             return .none
             
         case let .addProduct(product):
-            state.products.append(product)
+            state.rows.append(ProductRowFeature.State(product: product))
+            return .none
+        }
+    }
+    
+    public func reduce(into state: inout State, childAction: ChildAction) -> Effect<Action> {
+        switch childAction {
+        case let .product(.element(id: id, action: .delegate(delegateAction))):
+            guard let productRow = state.rows[id: id] else { return .none }
+            let product = productRow.product
+            switch delegateAction {
+            case .openDetails:
+                state.destination = .productDetails(.init(product: product))
+                return .none
+            }
+
+        default:
             return .none
         }
     }
@@ -78,17 +105,23 @@ public struct ProductList: Sendable, FeatureReducer {
         @dynamicMemberLookup
         @CasePathable
         public enum State: Hashable {
-            case addItemState(AddProductItem.State)
+            case addItemState(AddProductFeature.State)
+            case productDetails(ProductDetailsFeature.State)
         }
         
         @CasePathable
         public enum Action: Equatable {
-            case addItemAction(AddProductItem.Action)
+            case addItemAction(AddProductFeature.Action)
+            case productDetails(ProductDetailsFeature.Action)
         }
         
         public var body: some ReducerOf<Self> {
             Scope(state: \.addItemState, action: \.addItemAction) {
-                AddProductItem()
+                AddProductFeature()
+            }
+            
+            Scope(state: \.productDetails, action: \.productDetails) {
+                ProductDetailsFeature()
             }
         }
     }
