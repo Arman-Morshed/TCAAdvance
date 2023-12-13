@@ -9,19 +9,9 @@ import SwiftUI
 import ComposableArchitecture
 
 struct AppView: View {
-    let store: StoreOf<ProductList>
+    let store: StoreOf<ProductListFeature>
     
     var body: some View {
         ProductListView(store: store)
     }
-}
-
-#Preview {
-    AppView(store:
-            .init(
-                initialState: ProductList.State(),
-                reducer: { ProductList()
-                }
-            )
-    )
 }
